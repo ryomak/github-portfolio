@@ -36,7 +36,7 @@
 </template>
 <script lang="ts">
 import Vue from 'vue';
-import velocity from 'velocity-animate';
+import velocity from 'velocity-animate'; 
 export default Vue.extend({
     name: 'headerComponent',
     data() {
