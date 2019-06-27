@@ -1,15 +1,27 @@
 <template>
 <header>
-    <div class="overlay-navigation" :class="[toggleOverlay?'overlay-active':'',overlayNavToggleClass]">
-        <nav role="navigation">
+    <div 
+      class="overlay-navigation" 
+      :class="[toggleOverlay?'overlay-active':'',overlayNavToggleClass]"
+    >
+        <transition
+          v-on:enter="enterMenu"
+          v-on:leave="leaveMenu"
+          v-on:css="false"
+        >
+        <nav role="navigation" v-show="toggleOverlay">
             <ul>
-            <li transition="staggered" stagger="100" ><a href="#" data-content="The beginning">Home</a></li>
-            <li><a href="#" data-content="Curious?">About</a></li>
-            <li><a href="#" data-content="I got game">Skills</a></li>
-            <li><a href="#" data-content="Only the finest">Works</a></li>
-            <li><a href="#" data-content="Don't hesitate">Contact</a></li>
+              <li v-for="(menu,i) in menuData.list" 
+                  :key="i"
+                  :style="{'background-color':menu.color}"
+              >
+                  <a  :href="menu.href" :data-content="menu.dataContent">
+                    {{menu.text}}
+                  </a>
+              </li>
             </ul>
         </nav>
+      </transition>
     </div>
     <div 
         class="open-overlay" 
@@ -23,74 +35,82 @@
 </header>
 </template>
 <script lang="ts">
-import Vue from 'vue'
-
+import Vue from 'vue';
+import velocity from 'velocity-animate';
 export default Vue.extend({
-    name:"headerComponent",
-    data(){
+    name: 'headerComponent',
+    data() {
         return{
-            toggleOverlay:false,
-            clicking:false,
-        }
+            toggleOverlay: false,
+            clicking: false,
+        };
     },
-    computed:{
-        pointerEvents():any{
-            return this.clicking?'{pointer-events:"none"}':'{pointer-events:"auto"}';
+    computed: {
+        pointerEvents(): any {
+            return this.clicking ? '{pointer-events:none;}' : '{pointer-events:auto;}';
         },
-        topBarToggleClass():any{
-            return !this.toggleOverlay?
-            "animate-top-bar":
-            "animate-out-top-bar";
+        showMenu(): any {
+            console.log(this.clicking)
         },
-        middleBarToggleClass():any{
-            return !this.toggleOverlay?
-            "animate-middle-bar":
-            "animate-out-middle-bar";
+        topBarToggleClass(): any {
+            return !this.toggleOverlay ?
+            'animate-top-bar' :
+            'animate-out-top-bar';
         },
-        bottomBarToggleClass():any{
-            return !this.toggleOverlay?
-            "animate-bottom-bar":
-            "animate-out-bottom-bar";
+        middleBarToggleClass(): any {
+            return !this.toggleOverlay ?
+            'animate-middle-bar' :
+            'animate-out-middle-bar';
         },
-        overlayNavToggleClass():any{
-            return !this.toggleOverlay?
-            "overlay-slide-down":
-            "overlay-slide-up";
-        }
+        bottomBarToggleClass(): any {
+            return !this.toggleOverlay ?
+            'animate-bottom-bar' :
+            'animate-out-bottom-bar';
+        },
+        overlayNavToggleClass(): any {
+            return !this.toggleOverlay ?
+            'overlay-slide-down' :
+            'overlay-slide-up';
+        },
+        // todo height weightもやる
+        menuData(): any {
+          const data = {
+            list: [
+              {dataContent: 'The beginning', text: 'Home', href: '#', color: '#3A5A69'},
+              {dataContent: 'The beginning', text: 'Home', href: '#', color: '#514644'},
+              {dataContent: 'The beginning', text: 'Home', href: '#', color: '#535D55'},
+              {dataContent: 'The beginning', text: 'Home', href: '#', color: '#A5B7C1'},
+              {dataContent: 'The beginning', text: 'Home', href: '#', color: '#DBDBE5'},
+            ],
+          };
+          return data;
+        },
     },
-    methods:{
-        menuClick(){
+    methods: {
+        menuClick() {
             this.clicking = true;
             this.toggleOverlay = !this.toggleOverlay;
-            this.clicking = false;
         },
-        enterMenu(el:any,done:any){
-            if(this.toggleOverlay){
-                Velocity(el.li,{stagger:150,delay:0})
+        enterMenu(el: any, done: any) {
+            const liCom = el.children[0].children;
+            if (this.toggleOverlay) {
+                for (let i = 0; i < liCom.length; i++) {
+                  velocity.animate(liCom[i], {opacity: 1}, {duration: 150, delay: i * 100});
+                }
             }
         },
-        leaveMenu(el:any){
-            Velocity(el.li,{opacity:1},{delay:10,duration:140})
-        }
-    }
-
-}) 
+        leaveMenu(el: any, done: any) {
+          const liCom = el.children[0].children;
+          if (!this.toggleOverlay) {
+           for (let i = 0; i < liCom.length; i++) {
+                velocity.animate(liCom[i], {opacity: 0}, {duration: 200 , delay: (liCom.length - i) * 100});
+            }
+          }
+        },
+    },
+});
 </script>
 <style lang="scss" scoped>
-@import url(https://fonts.googleapis.com/css?family=Work+Sans:400,300,700|Open+Sans:400italic,300italic);
-body {
-  background-color: #fff
-}
-
-.home {
-  width: 100%;
-  height: 100vh;
-  position: relative;
-  background-image: url(https://images.unsplash.com/photo-1444927714506-8492d94b4e3d?ixlib=rb-0.3.5&q=80&fm=jpg&crop=entropy&s=067f0b097deff88a789e125210406ffe);
-  background-size: cover;
-  background-position: center center;
-}
-
 
 /* ====================================
 Navigation 
@@ -102,10 +122,7 @@ Navigation
   top: 0;
   left: 0;
   width: 100%;
-  height: 100%;
-  background-color: hsla(0, 0%, 100%, 0.2);
-  display: none;
-  opacity: 0;
+  height: 100%;  
 }
 
 nav,
@@ -139,7 +156,6 @@ nav ul li {
   height: 100%;
   overflow: hidden;
   opacity: 0;
-  display: none;
 }
 
 nav li a {
@@ -154,7 +170,6 @@ nav li a {
   display: block;
   text-align: center;
   font-size: 0.9rem;
-  opacity: 0;
 }
 
 nav li a:before {
@@ -210,29 +225,8 @@ nav li a:hover:after {
   opacity: 1;
 }
 
-nav li:nth-of-type(1) {
-  background-color: #29363B
-}
-
-nav li:nth-of-type(2) {
-  background-color: #EA495F
-}
-
-nav li:nth-of-type(3) {
-  background-color: #F4837D
-}
-
-nav li:nth-of-type(4) {
-  background-color: #FDCEA9
-}
-
-nav li:nth-of-type(5) {
-  background-color: #99B998
-}
-
-
 /* ====================================
-Burger king
+Burger 
 ==================================== */
 
 .open-overlay {
